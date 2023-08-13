@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.example.algamoney.api.config.property.AlgamoneyApiProperty;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -31,14 +33,22 @@ import com.nimbusds.jose.proc.SecurityContext;
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class ResourceServerConfig {
 
+    @Autowired
+    private AlgamoneyApiProperty algamoneyApiProperty;
+
     @Bean
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeRequests()
                 .antMatchers("/categorias").permitAll()
                 .anyRequest().authenticated()
-            .and()
+                .and()
                 .csrf().disable()
                 .oauth2ResourceServer().jwt().jwtAuthenticationConverter(jwtAuthenticationConverter());
+
+        http.logout()
+                .logoutUrl("/logout")
+                .logoutSuccessUrl(algamoneyApiProperty.getOriginPermitida());
+
         return http.formLogin(Customizer.withDefaults()).build();
     }
 
@@ -51,26 +61,26 @@ public class ResourceServerConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-    
+
     private JwtAuthenticationConverter jwtAuthenticationConverter() {
-		JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
-		jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwt -> {
-			List<String> authorities = jwt.getClaimAsStringList("authorities");
+        JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
+        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwt -> {
+            List<String> authorities = jwt.getClaimAsStringList("authorities");
 
-			if (authorities == null) {
-				authorities = Collections.emptyList();
-			}
+            if (authorities == null) {
+                authorities = Collections.emptyList();
+            }
 
-			JwtGrantedAuthoritiesConverter scopesAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
-			Collection<GrantedAuthority> grantedAuthorities = scopesAuthoritiesConverter.convert(jwt);
+            JwtGrantedAuthoritiesConverter scopesAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
+            Collection<GrantedAuthority> grantedAuthorities = scopesAuthoritiesConverter.convert(jwt);
 
-			grantedAuthorities.addAll(authorities.stream()
-					.map(SimpleGrantedAuthority::new)
-					.collect(Collectors.toList()));
+            grantedAuthorities.addAll(authorities.stream()
+                    .map(SimpleGrantedAuthority::new)
+                    .collect(Collectors.toList()));
 
-			return grantedAuthorities;
-		});
+            return grantedAuthorities;
+        });
 
-		return jwtAuthenticationConverter;
-	}
+        return jwtAuthenticationConverter;
+    }
 }

@@ -49,6 +49,10 @@ public class ResourceServerConfig {
                 .logoutUrl("/logout")
                 .logoutSuccessUrl(algamoneyApiProperty.getOriginPermitida());
 
+        http.formLogin()
+                .loginPage("/login")
+                .permitAll();
+
         return http.formLogin(Customizer.withDefaults()).build();
     }
 

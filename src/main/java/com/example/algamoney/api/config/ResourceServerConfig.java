@@ -40,6 +40,7 @@ public class ResourceServerConfig {
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeRequests()
                 .antMatchers("/categorias").permitAll()
+                .antMatchers("/images/**", "/js/**", "/css/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .csrf().disable()

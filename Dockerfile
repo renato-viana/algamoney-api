@@ -13,6 +13,9 @@ RUN mvn clean package -Pprod -DskipTests
 # Segunda fase para a imagem final
 FROM openjdk:17-jdk-slim
 
+# Atualize os pacotes e instale as bibliotecas necessárias para a biblioteca JasperReports gerar relatórios 
+RUN apt-get update && apt-get install -y fontconfig libfreetype6 && rm -rf /var/lib/apt/lists/*
+
 # Diretório de trabalho no contêiner para a fase final
 WORKDIR /app
 
